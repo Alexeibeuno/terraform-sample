@@ -8,8 +8,9 @@ terraform {
 }
 
 provider "snowflake" {
-  account = "VY63582"
-  username = "HALEXE"
+  account_name = "VY63582"
+organization_name = "PBXUDTW"
+  user = "HALEXE"
   password = "Senorita@b0211"
   role = "SYSADMIN"
 }
