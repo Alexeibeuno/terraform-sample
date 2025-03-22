@@ -1,26 +1,24 @@
 terraform {
   required_providers {
     snowflake = {
-      source  = "registry.terraform.io/snowflake-Labs/snowflake"
-      version = "~> 0.87"
+      source  = "chanzuckerberg/snowflake"
+      version = "0.25.17"
+    }
+  }
+
+  backend "remote" {
+    organization = "PBXUDTW"
+
+    workspaces {
+      name = "gh-actions-demo"
     }
   }
 }
 
 provider "snowflake" {
-  account_name = "account_name"
-organization_name = "organization_name"
-  user = "username"
-  password = "password"
-  role = "SYSADMIN"
 }
 
-resource "snowflake_database" "db" {
-  name = "TF_DEMO"
-}
-
-resource "snowflake_warehouse" "warehouse" {
-  name           = "TF_DEMO"
-  warehouse_size = "xsmall"
-  auto_suspend   = 60
+resource "snowflake_database" "demo_db" {
+  name    = "HALEXE"
+  comment = "Database for Snowflake Terraform demo"
 }
