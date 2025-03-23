@@ -7,7 +7,7 @@ terraform {
   }
 
   backend "remote" {
-    organization = "PBXUDTW"
+    organization = "Snow-Git-Terr"
 
     workspaces {
       name = "gh-actions-demo"
