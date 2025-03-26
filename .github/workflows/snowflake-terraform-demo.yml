@@ -25,11 +25,14 @@ jobs:
       - name: Terraform Init
         id: init
         run: terraform init
+        working_directory: .github/workflow
 
       - name: Terraform Validate
         id: validate
         run: terraform validate -no-color
+        working_directory: .github/workflow
 
       - name: Terraform Apply
         id: apply
         run: terraform apply -auto-approve
+        working_directory: .github/workflow
