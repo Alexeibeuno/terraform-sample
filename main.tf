@@ -146,6 +146,3 @@ name = "COMMENTS"
 type = "text"
 nullable = true
 }
-
-
-}
