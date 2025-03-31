@@ -22,7 +22,8 @@ user              = "HALEXE" # required if not using profile or token. Can also 
 password          = "Senorita@b0211"
 }
 
-resource "snowflake_database" "demo_db" {
-  name    = "DEV_1"
-  comment = "Database for Snowflake Terraform demo"
+resource "snowflake_schema" "DEV_1_Schema" {
+  database = snowflake_database.DEV_1.name
+  name     = "DEV1_SCHEMA"
+  comment  = "Schema for Snowflake Terraform demo"
 }
