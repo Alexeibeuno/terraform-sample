@@ -23,6 +23,6 @@ password          = "Senorita@b0211"
 }
 
 resource "snowflake_database" "demo_db" {
-  name    = "DEV"
+  name    = "DEV_1"
   comment = "Database for Snowflake Terraform demo"
 }
