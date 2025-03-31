@@ -22,7 +22,6 @@ jobs:
       - name: Terraform Format
         id: fmt
         run: terraform fmt -check
-        working-directory: .github/workflows
 
       - name: Terraform Init
         id: init
