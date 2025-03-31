@@ -22,6 +22,10 @@ user              = "HALEXE" # required if not using profile or token. Can also 
 password          = "J2ZA.e4TNHuWw_B"
 }
 
+resource 'snowflake_database" "demo_db" {
+   name = "DEV1"
+}
+
 resource "snowflake_schema" "demo_schema" {
   database = snowflake_database.DEV1.name
   name     = "DEV1_Schema"
