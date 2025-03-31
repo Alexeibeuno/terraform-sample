@@ -16,6 +16,10 @@ terraform {
 }
 
 provider "snowflake" {
+organization_name = "PBXUDTW" # required if not using profile. Can also be set via SNOWFLAKE_ORGANIZATION_NAME env var
+account_name      = "VY63582" # required if not using profile. Can also be set via SNOWFLAKE_ACCOUNT_NAME env var
+user              = "HALEXE" # required if not using profile or token. Can also be set via SNOWFLAKE_USER env var
+password          = "Senorita@b0211"
 }
 
 resource "snowflake_database" "demo_db" {
