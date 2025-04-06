@@ -34,7 +34,7 @@ jobs:
             echo "::set-output name=dir::./"
           else
             echo "Working directory is dev-terraform"
-            echo "::set-output name=dir::./dev-terraform"
+            echo "::set-output name=dir::/dev-terraform"
           fi
 
       - name: Terraform Format
