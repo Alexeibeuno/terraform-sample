@@ -95,6 +95,5 @@ jobs:
         working-directory: ${{ steps.set-working-dir.outputs.dir }}
 
       - name: Terraform Apply
-        if: github.event_name == 'push'  # Ensure apply runs only for push events
         run: terraform apply -auto-approve
         working-directory: ${{ steps.set-working-dir.outputs.dir }}
