@@ -57,7 +57,7 @@ type = "text"
 nullable = true
 }
 column {
-name = "SOURCE_DATABASE"
+name = "SOURCE_DATABASE_1"
 type = "text"
 nullable = true
 }
