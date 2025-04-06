@@ -73,7 +73,7 @@ resource "snowflake_table" "demo_table" {
   }
 
   column {
-    name    = "SOURCE_STAGE"
+    name    = "SOURCE_STAGE_1"
     type    = "text"
     nullable = true
   }
