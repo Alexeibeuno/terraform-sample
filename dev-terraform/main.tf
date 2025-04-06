@@ -118,7 +118,7 @@ resource "snowflake_table" "demo_table" {
   }
 
   column {
-    name    = "LANDING_TABLE"
+    name    = "LANDING_TABLE_1"
     type    = "text"
     nullable = true
   }
