@@ -56,7 +56,7 @@ jobs:
         if: github.event_name == 'pull_request'
         run: terraform plan -no-color
         continue-on-error: true
-        working-directory: .github/workflows
+        working-directory:  ${{ steps.set-working-dir.outputs.dir }}
 
       - uses: actions/github-script@0.9.0
         if: github.event_name == 'pull_request'
