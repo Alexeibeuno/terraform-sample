@@ -112,7 +112,7 @@ resource "snowflake_table" "demo_table" {
   }
 
   column {
-    name    = "LANDING_SCHEMA"
+    name    = "LANDING_SCHEMA_1"
     type    = "text"
     nullable = true
   }
