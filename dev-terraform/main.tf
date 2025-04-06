@@ -124,7 +124,7 @@ resource "snowflake_table" "demo_table" {
   }
 
   column {
-    name    = "TARGET_DATABASE"
+    name    = "TARGET_DATABASE_1"
     type    = "text"
     nullable = true
   }
