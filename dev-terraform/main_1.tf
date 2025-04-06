@@ -43,9 +43,6 @@ resource "snowflake_table" "demo_table" {
     name    = "PIPELINE_ID_1"
     type    = "int"
     nullable = true
-    default {
-      sequence = snowflake_sequence.seq_seqnm.fully_qualified_name
-    }
   }
 
   column {
