@@ -14,6 +14,9 @@ jobs:
   snowflake-terraform-demo:
     name: "Snowflake Terraform Demo Job"
     runs-on: ubuntu-latest
+    permissions:
+      issues: write  # Permission to write to issues (needed to comment)
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v2
