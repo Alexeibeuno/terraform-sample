@@ -62,7 +62,7 @@ type = "text"
 nullable = true
 }
 column {
-name = "SOURCE_SCHEMA"
+name = "SOURCE_SCHEMA_1"
 type = "text"
 nullable = true
 }
