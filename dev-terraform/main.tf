@@ -142,7 +142,7 @@ resource "snowflake_table" "demo_table" {
   }
 
   column {
-    name    = "LOAD_TYPE"
+    name    = "LOAD_TYPE_1"
     type    = "text"
     nullable = true
   }
