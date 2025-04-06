@@ -4,15 +4,11 @@ on:
   push:
     branches:
       - main
-      - DEV
+      - DEV  # Ensure the DEV branch is included
   pull_request:
-     branches:
+    branches:
       - main
-      - DEV
-
-permissions:
-  issues: write
-  pull-requests: write
+      - DEV  # Ensure the DEV branch is included
 
 jobs:
   snowflake-terraform-demo:
@@ -29,27 +25,21 @@ jobs:
 
       - name: Terraform Format
         id: fmt
-        run: terraform fmt
+        run: terraform fmt -check
 
       - name: Terraform Init
         id: init
         run: terraform init
-        working-directory: .github/workflows
-  
 
       - name: Terraform Validate
         id: validate
         run: terraform validate -no-color
-        working-directory: .github/workflows
 
-        
       - name: Terraform Plan
         id: plan
         if: github.event_name == 'pull_request'
         run: terraform plan -no-color
         continue-on-error: true
-        working-directory: .github/workflows
-       
 
       - uses: actions/github-script@0.9.0
         if: github.event_name == 'pull_request'
@@ -83,10 +73,7 @@ jobs:
       - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
         run: exit 1
-       
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -auto-approve
-        working-directory: .github/workflows
-       
