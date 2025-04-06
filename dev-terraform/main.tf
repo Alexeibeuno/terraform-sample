@@ -130,7 +130,7 @@ resource "snowflake_table" "demo_table" {
   }
 
   column {
-    name    = "TARGET_SCHEMA"
+    name    = "TARGET_SCHEMA_1"
     type    = "text"
     nullable = true
   }
