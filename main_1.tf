@@ -85,7 +85,7 @@ resource "snowflake_table" "demo_table" {
   }
 
   column {
-    name    = "SOURCE_RELATIVE_FILE_PATH"
+    name    = "SOURCE_RELATIVE_FILE_PATH_1"
     type    = "text"
     nullable = true
   }
