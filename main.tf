@@ -53,7 +53,7 @@ resource "snowflake_table" "demo_table" {
       nullable = true
     }
     column {
-      name    = "SOURCE"
+      name    = "SOURCE_1"
       type    = "text"
       nullable = true
     }
