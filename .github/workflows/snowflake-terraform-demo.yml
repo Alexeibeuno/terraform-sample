@@ -20,8 +20,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          ref: refs/heads/Dev
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
