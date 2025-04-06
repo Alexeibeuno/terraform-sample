@@ -40,7 +40,7 @@ resource "snowflake_table" "demo_table" {
   change_tracking = false
 
   column {
-    name    = "PIPELINE_ID"
+    name    = "PIPELINE_ID_1"
     type    = "int"
     nullable = true
     default {
