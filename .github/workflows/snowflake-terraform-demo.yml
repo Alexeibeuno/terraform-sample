@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
+    - name: Checkout_repo
       uses: actions/checkout@v3
 
     - name: Get list of changed .sql files
