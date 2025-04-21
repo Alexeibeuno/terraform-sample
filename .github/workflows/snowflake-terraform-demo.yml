@@ -1,99 +1,52 @@
-name: "Snowflake Terraform Demo Workflow"
+# Workflow that supports versions, goes in ~/.github/workflows/deploy.yaml
 
+name: CI
+
+# Controls when the workflow will run
 on:
+  # Triggers the workflow on any branch or tag commit
   push:
     branches:
       - main
-      - DEV  # Ensure the DEV branch is included
-  pull_request:
-    branches:
-      - main
-      - DEV  # Ensure the DEV branch is included
+      - DEV
+    tags:
+      - "v*"
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
-  snowflake-terraform-demo:
-    name: "Snowflake Terraform Demo Job"
+
+  deploy:
     runs-on: ubuntu-latest
-    permissions:
-      issues: write  # Permission to write to issues (needed to comment)
-      pull-requests: write
+
+    env:
+      SNOWSQL_PWD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      SNOWSQL_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWSQL_USER: ${{ secrets.SNOWFLAKE_USERNAME }}
+      SNOWSQL_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+      SNOWSQL_SCHEMA: ${{ secrets.SNOWFLAKE_SCHEMA }}
+      SNOWSQL_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+      SNOWSQL_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
-        with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-
-      - name: Determine working directory
-        id: set-working-dir
+      - name: Install SnowSQL
         run: |
-          if [ "${GITHUB_REF}" == "refs/heads/main" ]; then
-            echo "Working directory is root"
-            echo "::set-output name=dir::./"
-          else
-            echo "Working directory is dev-terraform"
-            echo "::set-output name=dir::./dev-terraform/"
-          fi
-
-      - name: Terraform Format
-        id: fmt
-        run: terraform fmt
-
-      - name: Terraform Init
-        id: init
-        run: terraform init
-        working-directory:  ${{ steps.set-working-dir.outputs.dir }}
-
-      - name: Terraform Validate
-        id: validate
-        run: terraform validate -no-color
-        working-directory:  ${{ steps.set-working-dir.outputs.dir }}
-
-      - name: Terraform Plan
-        id: plan
-        if: github.event_name == 'pull_request'
-        run: terraform plan -no-color
-        continue-on-error: true
-        working-directory:  ${{ steps.set-working-dir.outputs.dir }}
-
-      - uses: actions/github-script@0.9.0
-        if: github.event_name == 'pull_request'
-        env:
-          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
-            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
-            
-            <details><summary>Show Plan</summary>
-            
-            \`\`\`\n
-            ${process.env.PLAN}
-            \`\`\`
-            
-            </details>
-            
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
-            
-            github.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            })
-
-      - name: Terraform Plan
-        id: plan_1
-        if: github.event_name == 'push'  # Ensure plan runs only for push events
-        run: terraform plan -no-color
-        continue-on-error: true
-        working-directory: ${{ steps.set-working-dir.outputs.dir }}
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
-        working-directory: ${{ steps.set-working-dir.outputs.dir }}
+          curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.9-linux_x86_64.bash
+          SNOWSQL_DEST=~/bin SNOWSQL_LOGIN_SHELL=~/.profile bash snowsql-1.2.9-linux_x86_64.bash
+      # Runs a single command using the runners shell
+      - name: Upload artifact to SnowSQL
+        run: |
+          ~/bin/snowsql -q 'put file://'$(pwd)'/storedproc.py @~/${{ github.ref_name }} overwrite=true' -o friendly=false
+      - name: Create or update storedproc
+        run: |
+          ~/bin/snowsql -q 'CREATE OR REPLACE PROCEDURE MYPROC_'$(echo ${{ github.ref_name }} | tr . _)'(message STRING)
+                                        RETURNS STRING
+                                        LANGUAGE PYTHON
+                                        RUNTIME_VERSION = '\''3.8'\''
+                                        PACKAGES = ('\''snowflake-snowpark-python'\'')
+                                        IMPORTS = ('\''@~/${{ github.ref_name }}/storedproc.py'\'')
+                                        HANDLER = '\''storedproc.run'\'';' -o friendly=false
