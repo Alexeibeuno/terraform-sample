@@ -1,52 +1,48 @@
-# Workflow that supports versions, goes in ~/.github/workflows/deploy.yaml
+name: Run Changed SQL Files on PR
 
-name: CI
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on any branch or tag commit
-  push:
-    branches:
-      - main
-      - DEV
-    tags:
-      - "v*"
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+  pull_request:
+    paths:
+      - '**.sql'
 
 jobs:
-
-  deploy:
+  run-changed-sql:
     runs-on: ubuntu-latest
 
-    env:
-      SNOWSQL_PWD: ${{ secrets.SNOWFLAKE_PASSWORD }}
-      SNOWSQL_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-      SNOWSQL_USER: ${{ secrets.SNOWFLAKE_USERNAME }}
-      SNOWSQL_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
-      SNOWSQL_SCHEMA: ${{ secrets.SNOWFLAKE_SCHEMA }}
-      SNOWSQL_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
-      SNOWSQL_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
-
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+    - name: Checkout repo
+      uses: actions/checkout@v3
 
-      - name: Install SnowSQL
-        run: |
-          curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.9-linux_x86_64.bash
-          SNOWSQL_DEST=~/bin SNOWSQL_LOGIN_SHELL=~/.profile bash snowsql-1.2.9-linux_x86_64.bash
-      # Runs a single command using the runners shell
-      - name: Upload artifact to SnowSQL
-        run: |
-          ~/bin/snowsql -q 'put file://'$(pwd)'/storedproc.py @~/${{ github.ref_name }} overwrite=true' -o friendly=false
-      - name: Create or update storedproc
-        run: |
-          ~/bin/snowsql -q 'CREATE OR REPLACE PROCEDURE MYPROC_'$(echo ${{ github.ref_name }} | tr . _)'(message STRING)
-                                        RETURNS STRING
-                                        LANGUAGE PYTHON
-                                        RUNTIME_VERSION = '\''3.8'\''
-                                        PACKAGES = ('\''snowflake-snowpark-python'\'')
-                                        IMPORTS = ('\''@~/${{ github.ref_name }}/storedproc.py'\'')
-                                        HANDLER = '\''storedproc.run'\'';' -o friendly=false
+    - name: Get list of changed .sql files
+      id: changed-sql
+      run: |
+        git fetch origin ${{ github.base_ref }}
+        git diff --name-only origin/${{ github.base_ref }} | grep '\.sql$' > changed_sql.txt || echo "" > changed_sql.txt
+        echo "Files to execute:"
+        cat changed_sql.txt
+
+    - name: Execute SQL files on Snowflake
+      if: success()
+      env:
+        SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+        SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+        SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+        SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+        SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+        SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+        SNOWFLAKE_SCHEMA: ${{ secrets.SNOWFLAKE_SCHEMA }}
+      run: |
+        while read sqlfile; do
+          if [ -n "$sqlfile" ]; then
+            echo "Executing $sqlfile..."
+            ~/bin/snowsql \
+              -a $SNOWFLAKE_ACCOUNT \
+              -u $SNOWFLAKE_USER \
+              -p $SNOWFLAKE_PASSWORD \
+              -r $SNOWFLAKE_ROLE \
+              -w $SNOWFLAKE_WAREHOUSE \
+              -d $SNOWFLAKE_DATABASE \
+              -s $SNOWFLAKE_SCHEMA \
+              -f "$sqlfile"
+          fi
+        done < changed_sql.txt
