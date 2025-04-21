@@ -1,28 +1,26 @@
-name: Run Changed SQL Files on PR
+name: Deploy SQL to Snowflake
 
 on:
-  pull_request:
+  push:
+    branches:
+      - main  # or 'release', or use pull_request for PR testing
     paths:
-      - '**.sql'
+      - '**.sql'  # only run if a SQL file was changed
 
 jobs:
-  run-changed-sql:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout_repo
+    - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Get list of changed .sql files
-      id: changed-sql
+    - name: Install SnowSQL
       run: |
-        git fetch origin ${{ github.base_ref }}
-        git diff --name-only origin/${{ github.base_ref }} | grep '\.sql$' > changed_sql.txt || echo "" > changed_sql.txt
-        echo "Files to execute:"
-        cat changed_sql.txt
+        wget https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.21-linux_x86_64.bash
+        bash snowsql-1.2.21-linux_x86_64.bash
 
-    - name: Execute SQL files on Snowflake
-      if: success()
+    - name: Execute SQL files
       env:
         SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
         SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
@@ -32,17 +30,15 @@ jobs:
         SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
         SNOWFLAKE_SCHEMA: ${{ secrets.SNOWFLAKE_SCHEMA }}
       run: |
-        while read sqlfile; do
-          if [ -n "$sqlfile" ]; then
-            echo "Executing $sqlfile..."
-            ~/bin/snowsql \
-              -a $SNOWFLAKE_ACCOUNT \
-              -u $SNOWFLAKE_USER \
-              -p $SNOWFLAKE_PASSWORD \
-              -r $SNOWFLAKE_ROLE \
-              -w $SNOWFLAKE_WAREHOUSE \
-              -d $SNOWFLAKE_DATABASE \
-              -s $SNOWFLAKE_SCHEMA \
-              -f "$sqlfile"
-          fi
-        done < changed_sql.txt
+        for file in $(find . -name "*.sql"); do
+          echo "Running $file..."
+          ~/bin/snowsql \
+            -a "$SNOWFLAKE_ACCOUNT" \
+            -u "$SNOWFLAKE_USER" \
+            -p "$SNOWFLAKE_PASSWORD" \
+            -r "$SNOWFLAKE_ROLE" \
+            -w "$SNOWFLAKE_WAREHOUSE" \
+            -d "$SNOWFLAKE_DATABASE" \
+            -s "$SNOWFLAKE_SCHEMA" \
+            -f "$file"
+        done
